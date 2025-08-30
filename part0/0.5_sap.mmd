@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant Browser
+    participant Server
+    
+    Browser->>Server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/spa
+    Server-->>Browser: HTML code
+    
+    Browser->>Server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/main.css
+    Server-->>Browser: main.css
+    
+    Browser->>Server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/spa.js
+    Server-->>Browser: spa.js
+    
+    Note over Browser: browser starts executing js-code<br/>that requests JSON data from server
+    
+    Browser->>Server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/data.json
+    Server-->>Browser: [{ content: "Some text", date: "2023-08-23" }, ...]
+    
+    
