@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
+import initialNotes from "./src/dummyData.js";
 
 dotenv.config();
 
@@ -8,21 +10,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(cors());
 
-let notes = [
-  { id: "1", content: "HTML is easy", important: true },
-  { id: "2", content: "Browser can execute only JavaScript", important: false },
-  {
-    id: "3",
-    content: "GET and POST are the most important methods of HTTP protocol",
-    important: true,
-  },
-  {
-    id: "4",
-    content: "cyberpunk",
-    important: true,
-  },
-];
+let notes = [...initialNotes];
 
 app.get("/", (request, response) => {
   response.send("<h1>Hello World!</h1>");
@@ -51,6 +41,25 @@ app.delete("/api/notes/:id", (req, res) => {
   });
   notes = updatedNotes;
   res.status(204).send("Deletion Completed");
+});
+
+app.put("/api/notes/:id", (req, res) => {
+  const id = req.params.id;
+  const noteIndex = notes.findIndex((note) => note.id === id); // Ensure type matches
+
+  if (noteIndex === -1) {
+    return res.status(404).json({ error: "Note not found" });
+  }
+
+  const updatedNote = {
+    ...notes[noteIndex],
+    ...req.body,
+    id,
+  };
+
+  notes[noteIndex] = updatedNote;
+
+  res.json(updatedNote);
 });
 
 const generateId = () => {

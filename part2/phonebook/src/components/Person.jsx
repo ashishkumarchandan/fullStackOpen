@@ -6,9 +6,11 @@ const Person = ({ persons, deletePersonFxn }) => {
     <div>
       <div>
         {persons.map((person) => {
+          // console.log(`${person.content} says 3@!`);
+
           return (
             <PersonP
-              indP={person}
+              individualPerson={person}
               deletePerson={deletePersonFxn}
               key={person.id}
             />
