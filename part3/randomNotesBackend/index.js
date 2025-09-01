@@ -1,107 +1,83 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import initialNotes from "./src/dummyData.js";
 
 dotenv.config();
 
 const app = express();
-
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cors());
 
+// Get current directory in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ✅ Serve static files from React build folder
+app.use(express.static(path.join(__dirname, "dist")));
+
+// ✅ In-memory notes (like a mock DB)
 let notes = [...initialNotes];
 
-app.get("/", (request, response) => {
-  response.send("<h1>Hello World!</h1>");
-});
-
+// ✅ API Routes
 app.get("/api/notes", (req, res) => {
   res.json(notes);
 });
 
 app.get("/api/notes/:id", (req, res) => {
   const id = req.params.id;
-  const note = notes.find((note) => {
-    return note.id === id;
-  });
+  const note = notes.find((note) => note.id === id);
   if (note) {
     res.json(note);
   } else {
-    res.status(404).send(`<h1>nah its not there </h1>`);
+    res.status(404).json({ error: "Note not found" });
   }
 });
-
-app.delete("/api/notes/:id", (req, res) => {
-  const id = req.params.id;
-  const updatedNotes = notes.filter((note) => {
-    return note.id !== id;
-  });
-  notes = updatedNotes;
-  res.status(204).send("Deletion Completed");
-});
-
-app.put("/api/notes/:id", (req, res) => {
-  const id = req.params.id;
-  const noteIndex = notes.findIndex((note) => note.id === id); // Ensure type matches
-
-  if (noteIndex === -1) {
-    return res.status(404).json({ error: "Note not found" });
-  }
-
-  const updatedNote = {
-    ...notes[noteIndex],
-    ...req.body,
-    id,
-  };
-
-  notes[noteIndex] = updatedNote;
-
-  res.json(updatedNote);
-});
-
-const generateId = () => {
-  let maxId = 0;
-  if (notes.length > 0) {
-    maxId = Math.max(
-      ...notes.map((n) => {
-        return Number(n.id);
-      })
-    );
-  }
-  return String(maxId + 1);
-};
 
 app.post("/api/notes", (req, res) => {
   const body = req.body;
 
   if (!body.content) {
-    res.status(400).json({
-      error: "content missing",
-    });
-
-    return;
+    return res.status(400).json({ error: "content missing" });
   }
 
-  const note = {
+  const newNote = {
     ...body,
     important: body.important || false,
-    id: generateId(),
+    id: String(notes.length + 1),
   };
 
-  notes.push(note);
-
-  res.json(note);
+  notes.push(newNote);
+  res.json(newNote);
 });
 
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: "unknown endpoint" });
-};
+app.put("/api/notes/:id", (req, res) => {
+  const id = req.params.id;
+  const index = notes.findIndex((n) => n.id === id);
 
-app.use(unknownEndpoint);
+  if (index === -1) {
+    return res.status(404).json({ error: "Note not found" });
+  }
+
+  notes[index] = { ...notes[index], ...req.body };
+  res.json(notes[index]);
+});
+
+app.delete("/api/notes/:id", (req, res) => {
+  const id = req.params.id;
+  notes = notes.filter((n) => n.id !== id);
+  res.status(204).end();
+});
+
+// ✅ Fallback: Serve React index.html for all non-API routes
+app.get(/^(?!\/api).*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
+});
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`✅ Server running on http://localhost:${PORT}`);
 });

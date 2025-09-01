@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
-import axios from "axios";
-
+import notesService from "./services/notesService";
 function App() {
   const [notes, setNotes] = useState([]);
   const [newNotes, setNewNotes] = useState({ content: "", important: false });
 
   useEffect(() => {
     const getallData = async () => {
-      const response = await axios.get("http://localhost:3001/api/notes");
-      setNotes(response.data);
+      const notesData = await notesService.getAll();
+      setNotes(notesData);
     };
 
     getallData();
@@ -32,14 +29,14 @@ function App() {
         )
       ) {
         try {
-          const response = await axios.put(
-            `http://localhost:3001/api/notes/${existingNote.id}`,
-            { ...existingNote, important: newNotes.important }
-          );
+          const updated = await notesService.update(existingNote.id, {
+            ...existingNote,
+            important: newNotes.important,
+          });
 
           setNotes((prev) => {
             return prev.map((note) => {
-              return note.id === existingNote.id ? response.data : note;
+              return note.id === existingNote.id ? updated : note;
             });
           });
 
@@ -53,13 +50,10 @@ function App() {
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:3001/api/notes",
-        newNotes
-      );
+      const newNote = await notesService.create(newNotes);
 
       setNotes((prev) => {
-        return [...prev, response.data];
+        return [...prev, newNote];
       });
       setNewNotes({ content: "", important: false });
     } catch (error) {
@@ -77,7 +71,7 @@ function App() {
   const deleteNode = async (id) => {
     if (window.confirm("Are you sure you want to delete this note?")) {
       try {
-        await axios.delete(`http://localhost:3001/api/notes/${id}`);
+        await notesService.remove(id);
         setNotes((prev) => {
           return prev.filter((note) => {
             return note.id !== id;
