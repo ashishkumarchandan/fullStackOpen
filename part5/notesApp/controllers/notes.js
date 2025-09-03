@@ -14,6 +14,12 @@ notesRouter.get("/", async (req, res, next) => {
 
 notesRouter.get("/:id", async (req, res, next) => {
   try {
+    const { id } = req.params;
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ error: "malformatted id" });
+    }
+
     const note = await notesModels.findById(req.params.id);
 
     if (note) {
@@ -44,7 +50,18 @@ notesRouter.post("/", async (req, res, next) => {
 
 notesRouter.delete("/:id", async (req, res, next) => {
   try {
-    await notesModels.findByIdAndDelete(req.params.id);
+    const id = req.params.id;
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ error: "malformatted id" });
+    }
+
+    const deletedNote = await notesModels.findByIdAndDelete(id);
+
+    if (!deletedNote) {
+      return res.status(404).json({ error: "Note not found" });
+    }
+
     res.status(204).end();
   } catch (error) {
     next(error);
@@ -54,6 +71,11 @@ notesRouter.delete("/:id", async (req, res, next) => {
 notesRouter.put("/:id", async (req, res, next) => {
   try {
     const { content, important } = req.body;
+    const { id } = req.params;
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ error: "malformatted id" });
+    }
 
     if (!content) {
       logger.error("Content missing for PUT /api/notes/:id");
@@ -61,7 +83,7 @@ notesRouter.put("/:id", async (req, res, next) => {
     }
 
     const updated = await notesModels.findByIdAndUpdate(
-      req.params.id,
+      id,
       { content, important },
       { new: true, runValidators: true, context: "query" }
     );

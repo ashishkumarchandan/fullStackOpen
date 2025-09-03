@@ -1,47 +1,24 @@
-import assert from "node:assert";
-import { test, beforeEach, after, describe } from "node:test";
-import supertest from "supertest";
-import mongoose from "mongoose";
-import app from "../app.js";
-import Note from "../models/note.js";
-import * as helper from "./test_helper.js";
+describe("deletion of a note", () => {
+  test("succeeds with status code 204 if id is valid", async () => {
+    const notesAtStart = await helper.notesInDb();
+    const noteToDelete = notesAtStart[0];
 
-const api = supertest(app);
-
-describe("when there are initially some notes", () => {
-  beforeEach(async () => {
-    await Note.deleteMany({});
-    await Note.insertMany(helper.initialNotes);
-  });
-
-  test("a valid note can be added", async () => {
-    const newNote = {
-      content: "async/await simplifies async code",
-      important: true,
-    };
-
-    await api
-      .post("/api/notes")
-      .send(newNote)
-      .expect(201)
-      .expect("Content-Type", /application\/json/);
+    await api.delete(`/api/notes/${noteToDelete.id}`).expect(204);
 
     const notesAtEnd = await helper.notesInDb();
-    assert.strictEqual(notesAtEnd.length, helper.initialNotes.length + 1);
-    const contents = notesAtEnd.map((n) => n.content);
-    assert(contents.includes("async/await simplifies async code"));
+    assert.strictEqual(notesAtEnd.length, notesAtStart.length - 1);
+
+    const contents = notesAtEnd.map((r) => r.content);
+    assert(!contents.includes(noteToDelete.content));
   });
 
-  test("note without content is not added", async () => {
-    const newNote = { important: true };
-
-    await api.post("/api/notes").send(newNote).expect(400);
-
-    const notesAtEnd = await helper.notesInDb();
-    assert.strictEqual(notesAtEnd.length, helper.initialNotes.length);
+  test("fails with statuscode 404 if note does not exist", async () => {
+    const validNonexistingId = await helper.nonExistingId();
+    await api.delete(`/api/notes/${validNonexistingId}`).expect(404);
   });
-});
 
-after(async () => {
-  await mongoose.connection.close();
+  test("fails with statuscode 400 if id is invalid", async () => {
+    const invalidId = "notavalidid123";
+    await api.delete(`/api/notes/${invalidId}`).expect(400);
+  });
 });

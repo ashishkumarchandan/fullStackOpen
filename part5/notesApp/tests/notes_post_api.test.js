@@ -8,11 +8,12 @@ import helper from "./test_helper.js";
 
 const api = supertest(app);
 
+beforeEach(async () => {
+  await notesModels.deleteMany({});
+  await notesModels.insertMany(helper.initialNotes);
+});
+
 describe("when there are initially some notes", () => {
-  beforeEach(async () => {
-    await notesModels.deleteMany({});
-    await notesModels.insertMany(helper.initialNotes);
-  });
   test("a valid note can be added", async () => {
     const newNote = {
       content: "async/await simplifies async code",
@@ -45,6 +46,92 @@ describe("when there are initially some notes", () => {
 
     const notesAtEnd = await helper.notesInDb();
     assert.strictEqual(notesAtEnd.length, helper.initialNotes.length);
+  });
+});
+
+describe("viewing a specific note", () => {
+  test("succeeds with a valid id", async () => {
+    const notesAtStart = await helper.notesInDb();
+    const noteToView = notesAtStart[0];
+
+    const resultNote = await api
+      .get(`/api/notes/${noteToView.id}`)
+      .expect(200)
+      .expect("Content-Type", /application\/json/);
+
+    assert.deepStrictEqual(resultNote.body, noteToView);
+  });
+
+  test("fails with statuscode 404 if note does not exist", async () => {
+    const validNonexistingId = await helper.nonExistingId();
+    await api.get(`/api/notes/${validNonexistingId}`).expect(404);
+  });
+
+  test("fails with statuscode 400 if id is invalid", async () => {
+    const invalidId = "12345invalidid";
+    await api.get(`/api/notes/${invalidId}`).expect(400);
+  });
+});
+
+describe("deletion of a note", () => {
+  test("succeeds with status code 204 if id is valid", async () => {
+    const notesAtStart = await helper.notesInDb();
+    const noteToDelete = notesAtStart[0];
+
+    await api.delete(`/api/notes/${noteToDelete.id}`).expect(204);
+
+    const notesAtEnd = await helper.notesInDb();
+    assert.strictEqual(notesAtEnd.length, notesAtStart.length - 1);
+    const contents = notesAtEnd.map((r) => r.content);
+    assert(!contents.includes(noteToDelete.content));
+  });
+
+  test("fails with statuscode 404 if note does not exist", async () => {
+    const validNonexistingId = await helper.nonExistingId();
+    await api.delete(`/api/notes/${validNonexistingId}`).expect(404);
+  });
+
+  test("fails with statuscode 400 if id is invalid", async () => {
+    const invalidId = "notavalidid123";
+    await api.delete(`/api/notes/${invalidId}`).expect(400);
+  });
+});
+
+describe("updating a note", () => {
+  test("succeeds with valid data", async () => {
+    const notesAtStart = await helper.notesInDb();
+    const noteToUpdate = notesAtStart[0];
+
+    const updatedData = {
+      content: "Updated note content",
+      important: !noteToUpdate.important,
+    };
+
+    const result = await api
+      .put(`/api/notes/${noteToUpdate.id}`)
+      .send(updatedData)
+      .expect(200)
+      .expect("Content-Type", /application\/json/);
+
+    assert.strictEqual(result.body.content, updatedData.content);
+    assert.strictEqual(result.body.important, updatedData.important);
+  });
+
+  test("fails with 404 if note does not exist", async () => {
+    const validNonexistingId = await helper.nonExistingId();
+    const updatedData = { content: "Non existing", important: true };
+
+    await api
+      .put(`/api/notes/${validNonexistingId}`)
+      .send(updatedData)
+      .expect(404);
+  });
+
+  test("fails with 400 if id is invalid", async () => {
+    const invalidId = "invalid123id";
+    const updatedData = { content: "Does not matter", important: true };
+
+    await api.put(`/api/notes/${invalidId}`).send(updatedData).expect(400);
   });
 });
 
