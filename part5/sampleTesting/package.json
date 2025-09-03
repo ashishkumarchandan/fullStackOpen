@@ -1,0 +1,13 @@
+{
+  "name": "sampletesting",
+  "version": "1.0.0",
+  "description": "",
+  "main": "for_testing.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --test *.test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
