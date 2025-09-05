@@ -1,4 +1,5 @@
 import notesModels from "../models/notes.models.js";
+import User from "../models/user.models.js";
 
 const initialNotes = [
   { content: "HTML is easy", important: false },
@@ -16,14 +17,20 @@ const nonExistingId = async () => {
 };
 
 const notesInDb = async () => {
-  const notes = await notesModels.find({});
+  const notes = await notesModels.find({}).populate("user", { username: 1, name: 1 });
   return notes.map((note) => {
     return note.toJSON();
   });
+};
+
+const usersInDb = async () => {
+  const users = await User.find({});
+  return users.map((u) => u.toJSON());
 };
 
 export default {
   initialNotes,
   nonExistingId,
   notesInDb,
+  usersInDb,
 };

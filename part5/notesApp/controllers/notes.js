@@ -2,10 +2,13 @@ import express from "express";
 import notesModels from "../models/notes.models.js";
 const notesRouter = express.Router();
 import logger from "../utils/logger.js";
+import User from "../models/user.models.js";
 
 notesRouter.get("/", async (req, res, next) => {
   try {
-    const notes = await notesModels.find({});
+    const notes = await notesModels
+      .find({})
+      .populate("user", { username: 1, name: 1 });
     res.json(notes);
   } catch (error) {
     next(error);
@@ -20,7 +23,10 @@ notesRouter.get("/:id", async (req, res, next) => {
       return res.status(400).json({ error: "malformatted id" });
     }
 
-    const note = await notesModels.findById(req.params.id);
+    const note = await notesModels.findById(req.params.id).populate("user", {
+      username: 1,
+      name: 1,
+    });
 
     if (note) {
       res.json(note);
@@ -34,14 +40,27 @@ notesRouter.get("/:id", async (req, res, next) => {
 
 notesRouter.post("/", async (req, res, next) => {
   try {
-    const { content, important = false } = req.body;
+    const { content, important = false, userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(400).json({ error: "user not found" });
+    }
 
     const note = new notesModels({
       content,
       important,
+      user: user._id,
     });
 
     const saved = await note.save();
+    user.notes = user.notes.concat(saved._id);
+    await user.save();
     res.status(201).json(saved);
   } catch (error) {
     next(error);

@@ -1,24 +1,30 @@
-describe("deletion of a note", () => {
-  test("succeeds with status code 204 if id is valid", async () => {
-    const notesAtStart = await helper.notesInDb();
-    const noteToDelete = notesAtStart[0];
+import bcrypt from "bcrypt"
+import express from "express"
+import User from "../models/user.js"
 
-    await api.delete(`/api/notes/${noteToDelete.id}`).expect(204);
+const usersRouter = express.Router()
 
-    const notesAtEnd = await helper.notesInDb();
-    assert.strictEqual(notesAtEnd.length, notesAtStart.length - 1);
+// Create new user
+usersRouter.post("/", async (req, res) => {
+  const { username, name, password } = req.body
 
-    const contents = notesAtEnd.map((r) => r.content);
-    assert(!contents.includes(noteToDelete.content));
-  });
+  if (!password || password.length < 3) {
+    return res.status(400).json({
+      error: "password must be at least 3 characters long",
+    })
+  }
 
-  test("fails with statuscode 404 if note does not exist", async () => {
-    const validNonexistingId = await helper.nonExistingId();
-    await api.delete(`/api/notes/${validNonexistingId}`).expect(404);
-  });
+  const saltRounds = 10
+  const passwordHash = await bcrypt.hash(password, saltRounds)
 
-  test("fails with statuscode 400 if id is invalid", async () => {
-    const invalidId = "notavalidid123";
-    await api.delete(`/api/notes/${invalidId}`).expect(400);
-  });
-});
+  const user = new User({
+    username,
+    name,
+    passwordHash,
+  })
+
+  const savedUser = await user.save()
+  res.status(201).json(savedUser)
+})
+
+export default usersRouter

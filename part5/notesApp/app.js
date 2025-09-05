@@ -3,6 +3,7 @@ import connectDB from "./mongo.js";
 import logger from "./utils/logger.js";
 import middleware from "./utils/middleware.js";
 import notesRouter from "./controllers/notes.js";
+import usersRouter from "./controllers/users.js";
 
 const app = express();
 
@@ -14,6 +15,7 @@ connectDB().catch((error) => {
 app.use(express.json());
 app.use(middleware.requestLogger);
 app.use("/api/notes", notesRouter);
+app.use("/api/users", usersRouter);
 
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);
