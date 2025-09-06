@@ -1,30 +1,21 @@
-import bcrypt from "bcrypt"
-import express from "express"
-import User from "../models/user.js"
+notesRouter.post("/", userExtractor, async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "token missing or invalid" });
+    }
 
-const usersRouter = express.Router()
+    const note = new Note({
+      content: req.body.content,
+      important: req.body.important || false,
+      user: req.user._id,
+    });
 
-// Create new user
-usersRouter.post("/", async (req, res) => {
-  const { username, name, password } = req.body
+    const savedNote = await note.save();
+    req.user.notes = req.user.notes.concat(savedNote._id);
+    await req.user.save();
 
-  if (!password || password.length < 3) {
-    return res.status(400).json({
-      error: "password must be at least 3 characters long",
-    })
+    res.status(201).json(savedNote);
+  } catch (error) {
+    next(error);
   }
-
-  const saltRounds = 10
-  const passwordHash = await bcrypt.hash(password, saltRounds)
-
-  const user = new User({
-    username,
-    name,
-    passwordHash,
-  })
-
-  const savedUser = await user.save()
-  res.status(201).json(savedUser)
-})
-
-export default usersRouter
+});

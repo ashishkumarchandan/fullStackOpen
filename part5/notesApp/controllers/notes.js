@@ -1,9 +1,8 @@
 import express from "express";
 import notesModels from "../models/notes.models.js";
-const notesRouter = express.Router();
 import logger from "../utils/logger.js";
-import User from "../models/user.models.js";
-
+import middleware from "../utils/middleware.js";
+const notesRouter = express.Router();
 notesRouter.get("/", async (req, res, next) => {
   try {
     const notes = await notesModels
@@ -38,29 +37,25 @@ notesRouter.get("/:id", async (req, res, next) => {
   }
 });
 
-notesRouter.post("/", async (req, res, next) => {
+notesRouter.post("/", middleware.userExtractor, async (req, res, next) => {
   try {
-    const { content, important = false, userId } = req.body;
+    const { content, important = false } = req.body;
 
-    if (!userId) {
-      return res.status(400).json({ error: "userId is required" });
-    }
-
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(400).json({ error: "user not found" });
+    if (!req.user) {
+      return res.status(401).json({
+        error: "token missing or invalid",
+      });
     }
 
     const note = new notesModels({
       content,
       important,
-      user: user._id,
+      user: req.user._id,
     });
 
     const saved = await note.save();
-    user.notes = user.notes.concat(saved._id);
-    await user.save();
+    req.user.notes = req.user.notes.concat(saved._id);
+    await req.user.save();
     res.status(201).json(saved);
   } catch (error) {
     next(error);
