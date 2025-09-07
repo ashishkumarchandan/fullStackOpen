@@ -1,15 +1,17 @@
 import express from "express";
 import Blog from "../models/blog.models.js";
+import middleware from "../utils/middleware.js";
 const blogRouter = express.Router();
 
-blogRouter.get("/", async (req, res) => {
+blogRouter.get("/", async (req, res, next) => {
   try {
-    const blogs = await Blog.find({});
+    const blogs = await Blog.find({}).populate("user", {
+      username: 1,
+      name: 1,
+    });
     res.json(blogs);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to retrieve blogs", error: error.message });
+    next(error);
   }
 });
 
@@ -35,40 +37,44 @@ blogRouter.get("/:id", async (req, res, next) => {
   }
 });
 
-blogRouter.post("/", async (req, res) => {
-  const body = req.body;
-
-  const blog = new Blog({
-    title: body.title,
-    author: body.author,
-    url: body.url,
-    likes: body.likes,
-  });
+blogRouter.post("/", middleware.userExtractor, async (req, res, next) => {
   try {
+    const user = req.user;
+
+    const blog = new Blog({
+      title: req.body.title,
+      author: req.body.author,
+      url: req.body.url,
+      likes: req.body.likes || 0,
+      user: user._id,
+    });
+
     const savedBlog = await blog.save();
+    user.blogs = user.blogs.concat(savedBlog._id);
+    await user.save();
     res.status(201).json(savedBlog);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    next(error);
   }
 });
 
-blogRouter.delete("/:id", async (req, res, next) => {
+blogRouter.delete("/:id", middleware.userExtractor, async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const user = req.user;
+    const blog = await Blog.findById(req.params.id);
 
-    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({ error: "malformatted id" });
+    if (!blog) {
+      return res.status(404).json({ error: "blog not found" });
     }
 
-    const deletedBlog = await Blog.findByIdAndDelete(id);
-
-    if (!deletedBlog) {
-      return res.status(404).json({
-        error: "Blog not found",
-      });
-    } else {
-      res.status(204).end();
+    if (blog.user.toString() !== user._id.toString()) {
+      return res
+        .status(401)
+        .json({ error: "only the creator can delete this blog" });
     }
+
+    await Blog.findByIdAndDelete(req.params.id);
+    res.status(204).end();
   } catch (error) {
     next(error);
   }
