@@ -4,6 +4,7 @@ import blogRouter from "./controller/blogRouter.js";
 import middleware from "./utils/middleware.js";
 import userRouter from "./controller/userRouter.js";
 import loginRouter from "./controller/loginRouter.js";
+import cors from "cors";
 
 const app = express();
 
@@ -12,6 +13,7 @@ connectDB().catch((err) => {
   process.exit(1);
 });
 
+app.use(cors());
 app.use(express.json());
 app.use(middleware.tokenExtractor);
 

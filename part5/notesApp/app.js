@@ -1,4 +1,6 @@
 import express from "express";
+import cors from "cors";
+
 import connectDB from "./mongo.js";
 import logger from "./utils/logger.js";
 import middleware from "./utils/middleware.js";
@@ -13,6 +15,7 @@ connectDB().catch((error) => {
   process.exit(1);
 });
 
+app.use(cors());
 app.use(express.json());
 app.use(middleware.requestLogger);
 app.use(middleware.tokenExtractor);
