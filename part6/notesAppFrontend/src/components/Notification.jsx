@@ -1,15 +1,23 @@
-const Notification = ({ message, type }) => {
-  if (!message) return null;
+import PropTypes from "prop-types";
+
+const Notification = ({ message }) => {
+  if (message === null) return null;
 
   const style = {
-    color: type === "error" ? "red" : "green",
-    background: "#eee",
-    border: `2px solid ${type === "error" ? "red" : "green"}`,
+    color: message.type === "error" ? "red" : "green",
+    background: "#f0f0f0",
+    fontSize: 16,
+    border: "1px solid",
+    borderRadius: 5,
     padding: 10,
     marginBottom: 10,
   };
 
-  return <div style={style}>{message}</div>;
+  return <div style={style}>{message.text}</div>;
+};
+
+Notification.propTypes = {
+  message: PropTypes.object,
 };
 
 export default Notification;

@@ -13,9 +13,7 @@ const getAll = async () => {
 };
 
 const create = async (newObject) => {
-  const config = {
-    headers: { Authorization: token },
-  };
+  const config = { headers: { Authorization: token } };
   const response = await axios.post(baseUrl, newObject, config);
   return response.data;
 };
@@ -25,4 +23,9 @@ const update = async (id, newObject) => {
   return response.data;
 };
 
-export default { getAll, create, update, setToken };
+const remove = async (id) => {
+  const config = { headers: { Authorization: token } };
+  await axios.delete(`${baseUrl}/${id}`, config);
+};
+
+export default { getAll, create, update, remove, setToken };

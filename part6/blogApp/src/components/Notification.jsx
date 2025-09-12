@@ -1,20 +1,26 @@
-import React from "react";
+import PropTypes from "prop-types";
 
-export default function Notification({ message, type }) {
-  if (!message) return null;
-
-  const baseStyle = {
-    padding: 10,
-    marginBottom: 10,
-    border: "2px solid",
-    borderRadius: 5,
-  };
+const Notification = ({ message }) => {
+  if (message === null) return null;
 
   const style = {
-    ...baseStyle,
-    color: type === "error" ? "red" : "green",
-    borderColor: type === "error" ? "red" : "green",
+    color: message.type === "error" ? "red" : "green",
+    background: "#f0f0f0",
+    fontSize: 20,
+    border: "1px solid",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
   };
 
-  return <div style={style}>{message}</div>;
-}
+  return <div style={style}>{message.text}</div>;
+};
+
+Notification.propTypes = {
+  message: PropTypes.shape({
+    text: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+  }),
+};
+
+export default Notification;

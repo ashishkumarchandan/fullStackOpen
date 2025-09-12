@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import PropTypes from "prop-types";
 
-export default function BlogForm({ createBlog }) {
+const BlogForm = ({ createBlog }) => {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [url, setUrl] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    await createBlog({ title, author, url });
+    createBlog({ title, author, url });
     setTitle("");
     setAuthor("");
     setUrl("");
@@ -15,11 +16,12 @@ export default function BlogForm({ createBlog }) {
 
   return (
     <div>
-      <h3>Create new</h3>
+      <h2>create new</h2>
       <form onSubmit={handleSubmit}>
         <div>
           title:
           <input
+            type="text"
             value={title}
             onChange={({ target }) => setTitle(target.value)}
           />
@@ -27,16 +29,27 @@ export default function BlogForm({ createBlog }) {
         <div>
           author:
           <input
+            type="text"
             value={author}
             onChange={({ target }) => setAuthor(target.value)}
           />
         </div>
         <div>
           url:
-          <input value={url} onChange={({ target }) => setUrl(target.value)} />
+          <input
+            type="text"
+            value={url}
+            onChange={({ target }) => setUrl(target.value)}
+          />
         </div>
         <button type="submit">create</button>
       </form>
     </div>
   );
-}
+};
+
+BlogForm.propTypes = {
+  createBlog: PropTypes.func.isRequired,
+};
+
+export default BlogForm;

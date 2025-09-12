@@ -5,8 +5,7 @@ import Togglable from "./components/Togglable";
 import Notification from "./components/Notification";
 import blogService from "./services/blogs";
 import loginService from "./services/login";
-import LoginForm from "./components/LoginForm";
-import "./App.css";
+
 const App = () => {
   const [blogs, setBlogs] = useState([]);
   const [user, setUser] = useState(null);
@@ -31,12 +30,15 @@ const App = () => {
     }
   }, []);
 
-  const handleLogin = async ({ username, password }) => {
+  const handleLogin = async (event) => {
+    event.preventDefault();
     try {
       const user = await loginService.login({ username, password });
       window.localStorage.setItem("loggedBlogappUser", JSON.stringify(user));
       blogService.setToken(user.token);
       setUser(user);
+      setUsername("");
+      setPassword("");
     } catch (exception) {
       setMessage({ text: "wrong username or password", type: "error" });
       setTimeout(() => setMessage(null), 5000);
@@ -92,7 +94,28 @@ const App = () => {
       <div>
         <h2>log in to application</h2>
         <Notification message={message} />
-        <LoginForm onLogin={handleLogin} />
+
+        <form onSubmit={handleLogin}>
+          <div>
+            username
+            <input
+              type="text"
+              value={username}
+              name="Username"
+              onChange={({ target }) => setUsername(target.value)}
+            />
+          </div>
+          <div>
+            password
+            <input
+              type="password"
+              value={password}
+              name="Password"
+              onChange={({ target }) => setPassword(target.value)}
+            />
+          </div>
+          <button type="submit">login</button>
+        </form>
       </div>
     );
   }
