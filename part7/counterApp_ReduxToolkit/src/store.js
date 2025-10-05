@@ -1,10 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
-
-import anecdoteReducer from "./reducers/anecdoteSlice.js";
+import counterReducer from "./reducers/counterSlice";
 
 const store = configureStore({
   reducer: {
-    anecdotes: anecdoteReducer,
+    counter: counterReducer,
   },
 });
 
