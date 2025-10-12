@@ -1,29 +1,37 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setFilter } from "../reducers/filterSlice";
+import { toggleImportance } from "../reducers/noteSlice";
+import { toast } from "react-toastify";
 
-const VisibilityFilter = () => {
+const Notes = () => {
   const dispatch = useDispatch();
-  const current = useSelector((state) => state.filter);
-  const filters = ["ALL", "IMPORTANT", "NONIMPORTANT"];
+  const { notes, filter } = useSelector((state) => state);
+
+  const filteredNotes =
+    filter === "ALL"
+      ? notes
+      : filter === "IMPORTANT"
+      ? notes.filter((n) => n.important)
+      : notes.filter((n) => !n.important);
+
+  const handleToggle = (note) => {
+    dispatch(toggleImportance(note.id));
+    toast.success(`Toggled "${note.content}" importance`);
+  };
 
   return (
-    <div>
-      <h3>Filter notes</h3>
-      {filters.map((f) => (
-        <label key={f} style={{ marginRight: "1rem" }}>
-          <input
-            type="radio"
-            name="filter"
-            value={f}
-            checked={current === f}
-            onChange={() => dispatch(setFilter(f))}
-          />
-          {f}
-        </label>
+    <ul>
+      {filteredNotes.map((note) => (
+        <li
+          key={note.id}
+          onClick={() => handleToggle(note)}
+          style={{ cursor: "pointer", padding: "4px 0" }}
+        >
+          {note.content} {note.important ? "🌟" : ""}
+        </li>
       ))}
-    </div>
+    </ul>
   );
 };
 
-export default VisibilityFilter;
+export default Notes;
