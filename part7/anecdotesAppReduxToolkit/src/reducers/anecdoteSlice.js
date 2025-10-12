@@ -31,6 +31,5 @@ const anecdoteSlice = createSlice({
   },
 });
 
-
-export const {voteAnecdote, addAnecdote} = anecdoteSlice.actions;
+export const { voteAnecdote, addAnecdote } = anecdoteSlice.actions;
 export default anecdoteSlice.reducer;
