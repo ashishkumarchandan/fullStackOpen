@@ -22,5 +22,20 @@ export const toggleImportanceOf = createAsyncThunk(
 );
 
 const noteSlice = createSlice({
-    n
-})
+  name: "notes",
+  initialState: [],
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(initializeNotes.fulfilled, (state, action) => action.payload)
+      .addCase(createNote.fulfilled, (state, action) => {
+        state.push(action.payload);
+      })
+      .addCase(toggleImportanceOf.fulfilled, (state, action) => {
+        const updatedNote = action.payload;
+        return state.map((n) => (n.id !== updatedNote.id ? n : updatedNote));
+      });
+  },
+});
+
+export default noteSlice.reducer;

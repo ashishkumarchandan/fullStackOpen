@@ -1,0 +1,59 @@
+{
+  "notes": [
+    {
+      "id": "1",
+      "content": "Learn React Query",
+      "important": false
+    },
+    {
+      "id": "2",
+      "content": "Practice Redux Toolkit",
+      "important": false
+    },
+    {
+      "id": "3",
+      "content": "Refactor authentication service to use async/await",
+      "important": true
+    },
+    {
+      "id": "4",
+      "content": "Update component library documentation",
+      "important": true
+    },
+    {
+      "id": "5",
+      "content": "Investigate performance issues in the data table component",
+      "important": false
+    },
+    {
+      "id": "6",
+      "content": "Set up Jest for unit testing utility functions",
+      "important": false
+    },
+    {
+      "id": "7",
+      "content": "Design and implement new user profile page layout",
+      "important": true
+    },
+    {
+      "id": "8",
+      "content": "Review pull request #45 for backend changes",
+      "important": true
+    },
+    {
+      "id": "9",
+      "content": "Write integration tests for payment processing module",
+      "important": true
+    },
+    {
+      "id": "10",
+      "content": "Plan sprint tasks for the next two weeks",
+      "important": true
+    },
+    {
+      "id": "2f97",
+      "content": "dsfdf",
+      "important": true
+    }
+  ]
+}

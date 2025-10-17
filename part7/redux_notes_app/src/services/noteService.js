@@ -13,7 +13,7 @@ const createNew = async (content) => {
   return response.data;
 };
 
-const update = async (id, updateNote) => {
+const update = async (id, updatedNote) => {
   const response = await axios.put(`${baseUrl}/${id}`, updatedNote);
   return response.data;
 };
